@@ -20,17 +20,17 @@ public sealed class LoyaltyPointSteps
         await this._driver.AddLoyaltyPoints(customerId, orderIdentifier, orderValue);
     }
 
+    [When(@"(.*) points are spent for customer (.*) for order (.*)")]
+    public async Task WhenPointsAreSpentForCustomerJamesForOrderOrd(int points, string customerId, string orderIdentifier)
+    {
+        await this._driver.SpendLoyaltyPoints(customerId, orderIdentifier, points);
+    }
+    
     [Then(@"the total points should be (.*) for (.*)")]
     public async Task ThenTheTotalPointsShouldBe(int totalPoints, string customerIdentifier)
     {
         var points = await this._driver.GetLoyaltyPoints(customerIdentifier);
 
         points.TotalPoints.Should().Be(totalPoints);
-    }
-
-    [When(@"(.*) points are spent for customer (.*) for order (.*)")]
-    public async Task WhenPointsAreSpentForCustomerJamesForOrderOrd(int points, string customerId, string orderIdentifier)
-    {
-        await this._driver.SpendLoyaltyPoints(customerId, orderIdentifier, points);
     }
 }
