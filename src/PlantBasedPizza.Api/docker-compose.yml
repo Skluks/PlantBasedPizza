@@ -23,3 +23,12 @@ services:
       - 8443:8080
     volumes:
       - ./mocks/loyalty-api:/home/wiremock
+
+  gripmock:
+    image: tkpd/gripmock:latest
+    ports:
+      - 4770:4770
+      - 4771:4771
+    volumes:
+      - ./mocks/grpc-mocks:/proto
+    command: --stub=/proto/stubs /proto/loyalty.proto /proto/payment.proto

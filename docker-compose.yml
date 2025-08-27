@@ -17,23 +17,65 @@ services:
       - 4317:4317
       - 4318:4318
 
+  consul:
+    image: hashicorp/consul:latest
+    ports:
+      - 8500:8500
+
   local.api:
-    image: plant-based-pizza-api-mod-2
+    image: plant-based-pizza-api-mod-3
     container_name: local.pizza-api
+    depends_on:
+      - consul
     ports:
       - "5051:8080"
     environment:
       - DatabaseConnection=mongodb://mongodb:27017
       - OtlpEndpoint=http://jaeger:4317
       - Environment=local
-      - Services__Loyalty=http://local.loyalty-api:8080
+      - Services__Loyalty=http://LoyaltyApi
+      - Services__LoyaltyInternal=http://LoyaltyInternalApi
+      - Services__PaymentInternal=http://PaymentApi
+      - ServiceDiscovery__MyUrl=http://local.api:8080
+      - ServiceDiscovery__ServiceName=Api
+      - ServiceDiscovery__ConsulServiceEndpoint=http://consul:8500
 
   local.loyalty-api:
-    image: loyalty-api-mod-2
+    image: loyalty-api-mod-3
     container_name: local.loyalty-api
+    depends_on:
+      - consul
     ports:
       - "5050:8080"
     environment:
       - DatabaseConnection=mongodb://mongodb:27017
       - OtlpEndpoint=http://jaeger:4317
       - Environment=local
+      - ServiceDiscovery__MyUrl=http://local.loyalty-api:8080
+      - ServiceDiscovery__ServiceName=LoyaltyApi
+      - ServiceDiscovery__ConsulServiceEndpoint=http://consul:8500
+
+  local.loyalty-internal-api:
+    image: loyalty-internal-api-mod-3
+    container_name: local.loyalty-internal-api
+    depends_on:
+      - consul
+    environment:
+      - DatabaseConnection=mongodb://mongodb:27017
+      - OtlpEndpoint=http://jaeger:4317
+      - Environment=local
+      - ServiceDiscovery__MyUrl=http://local.loyalty-internal-api:8080
+      - ServiceDiscovery__ServiceName=LoyaltyInternalApi
+      - ServiceDiscovery__ConsulServiceEndpoint=http://consul:8500
+
+  local.payment-api:
+    image: payment-api-mod-3
+    container_name: local.payment-api
+    depends_on:
+      - consul
+    environment:
+      - OtlpEndpoint=http://jaeger:4317
+      - Environment=local
+      - ServiceDiscovery__MyUrl=http://local.payment-api:8080
+      - ServiceDiscovery__ServiceName=PaymentApi
+      - ServiceDiscovery__ConsulServiceEndpoint=http://consul:8500
