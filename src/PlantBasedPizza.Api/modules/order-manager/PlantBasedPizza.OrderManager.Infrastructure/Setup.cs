@@ -1,8 +1,8 @@
 using Grpc.Core;
-using Grpc.Net.Client;
 using Grpc.Net.Client.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using PlantBasedPizza.Api.Events;
 using PlantBasedPizza.Events;
 using PlantBasedPizza.OrderManager.Core.AddItemToOrder;
 using PlantBasedPizza.OrderManager.Core.CollectOrder;
@@ -11,7 +11,6 @@ using PlantBasedPizza.OrderManager.Core.CreatePickupOrder;
 using PlantBasedPizza.OrderManager.Core.Entities;
 using PlantBasedPizza.OrderManager.Core.Handlers;
 using PlantBasedPizza.OrderManager.Core.Services;
-using PlantBasedPizza.Shared.Events;
 using PlantBasedPizza.Shared.ServiceDiscovery;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
@@ -83,6 +82,12 @@ namespace PlantBasedPizza.OrderManager.Infrastructure
                     channel.ServiceConfig = new ServiceConfig() { MethodConfigs = { defaultMethodConfig } };
                 });
             
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = configuration["RedisConnectionString"];
+                options.InstanceName = "Orders";
+            });
+            
             services.AddSingleton<IOrderRepository, OrderRepository>();
             services.AddSingleton<CollectOrderCommandHandler>();
             services.AddSingleton<AddItemToOrderHandler>();
@@ -92,12 +97,12 @@ namespace PlantBasedPizza.OrderManager.Infrastructure
             services.AddSingleton<ILoyaltyPointService, LoyaltyPointService>();
             services.AddSingleton<IPaymentService, PaymentService>();
             
-            services.AddSingleton<Handles<OrderPreparingEvent>, OrderPreparingEventHandler>();
-            services.AddSingleton<Handles<OrderPrepCompleteEvent>, OrderPrepCompleteEventHandler>();
-            services.AddSingleton<Handles<OrderBakedEvent>, OrderBakedEventHandler>();
-            services.AddSingleton<Handles<OrderQualityCheckedEvent>, OrderQualityCheckedEventHandler>();
-            services.AddSingleton<Handles<OrderDeliveredEvent>, DriverDeliveredOrderEventHandler>();
-            services.AddSingleton<Handles<DriverCollectedOrderEvent>, DriverCollectedOrderEventHandler>();
+            services.AddSingleton<IHandles<OrderPreparingEvent>, OrderPreparingEventHandler>();
+            services.AddSingleton<IHandles<OrderPrepCompleteEvent>, OrderPrepCompleteEventHandler>();
+            services.AddSingleton<IHandles<OrderBakedEvent>, OrderBakedEventHandler>();
+            services.AddSingleton<IHandles<OrderQualityCheckedEvent>, OrderQualityCheckedEventHandler>();
+            services.AddSingleton<IHandles<OrderDeliveredEvent>, DriverDeliveredOrderEventHandler>();
+            services.AddSingleton<IHandles<DriverCollectedOrderEvent>, DriverCollectedOrderEventHandler>();
 
             services.AddSingleton<OrderManagerHealthChecks>();
             services.AddHttpClient<OrderManagerHealthChecks>()

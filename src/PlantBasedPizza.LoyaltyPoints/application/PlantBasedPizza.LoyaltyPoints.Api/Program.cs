@@ -1,12 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson.Serialization;
-using MongoDB.Driver;
 using PlantBasedPizza.LoyaltyPoints;
-using PlantBasedPizza.LoyaltyPoints.Adapters;
-using PlantBasedPizza.LoyaltyPoints.Core;
 using PlantBasedPizza.LoyaltyPoints.Shared;
-using PlantBasedPizza.Shared;
+using PlantBasedPizza.LoyaltyPoints.Shared.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
@@ -51,7 +47,7 @@ app.MapGet("/loyalty/{customerIdentifier}", async (string customerIdentifier) =>
         return Results.NotFound(customerIdentifier);
     }
 
-    return Results.Ok(new LoyaltyPointsDTO(loyalty));
+    return Results.Ok(new LoyaltyPointsDto(loyalty));
 });
 
 app.Run();

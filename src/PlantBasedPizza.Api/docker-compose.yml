@@ -16,6 +16,11 @@ services:
       - 13133:13133
       - 4317:4317
       - 4318:4318
+  
+  cache:
+    image: redis:7.2
+    ports:
+      - '6379:6379'
 
   wiremock:
     image: wiremock/wiremock:latest
@@ -32,3 +37,10 @@ services:
     volumes:
       - ./mocks/grpc-mocks:/proto
     command: --stub=/proto/stubs /proto/loyalty.proto /proto/payment.proto
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+        - 5672:5672
+        - 15672:15672

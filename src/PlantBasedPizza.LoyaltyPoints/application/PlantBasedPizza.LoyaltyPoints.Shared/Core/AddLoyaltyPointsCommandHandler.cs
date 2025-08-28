@@ -1,16 +1,23 @@
-namespace PlantBasedPizza.LoyaltyPoints.Core;
+using Microsoft.Extensions.Logging;
+using PlantBasedPizza.Events;
+
+namespace PlantBasedPizza.LoyaltyPoints.Shared.Core;
 
 public class AddLoyaltyPointsCommandHandler
 {
     private readonly ICustomerLoyaltyPointsRepository _customerLoyaltyPointsRepository;
+    private readonly ILogger<AddLoyaltyPointsCommandHandler> _logger;
 
-    public AddLoyaltyPointsCommandHandler(ICustomerLoyaltyPointsRepository customerLoyaltyPointsRepository)
+    public AddLoyaltyPointsCommandHandler(ICustomerLoyaltyPointsRepository customerLoyaltyPointsRepository, ILogger<AddLoyaltyPointsCommandHandler> logger)
     {
         _customerLoyaltyPointsRepository = customerLoyaltyPointsRepository;
+        _logger = logger;
     }
 
-    public async Task<LoyaltyPointsDTO> Handle(AddLoyaltyPointsCommand command)
+    public async Task<LoyaltyPointsDto> Handle(AddLoyaltyPointsCommand command)
     {
+        this._logger.LogInformation($"Handling AddLoyaltyPointsCommand for {command.OrderIdentifier}");
+        
         var currentLoyaltyPoints = await this._customerLoyaltyPointsRepository.GetCurrentPointsFor(command.CustomerIdentifier);
         
         if (currentLoyaltyPoints is null)
@@ -22,6 +29,6 @@ public class AddLoyaltyPointsCommandHandler
 
         await this._customerLoyaltyPointsRepository.UpdatePoints(currentLoyaltyPoints);
 
-        return new LoyaltyPointsDTO(currentLoyaltyPoints);
+        return new LoyaltyPointsDto(currentLoyaltyPoints);
     }
 }

@@ -1,10 +1,10 @@
 using System.Text.Json.Serialization;
 
-namespace PlantBasedPizza.LoyaltyPoints.Core;
+namespace PlantBasedPizza.LoyaltyPoints.Shared.Core;
 
-public class LoyaltyPointsDTO
+public class LoyaltyPointsDto
 {
-    public LoyaltyPointsDTO(CustomerLoyaltyPoints points)
+    public LoyaltyPointsDto(CustomerLoyaltyPoints points)
     {
         this.CustomerIdentifier = points.CustomerId;
         this.TotalPoints = points.TotalPoints;

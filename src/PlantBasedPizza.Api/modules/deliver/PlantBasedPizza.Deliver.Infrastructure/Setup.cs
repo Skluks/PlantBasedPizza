@@ -1,15 +1,14 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using PlantBasedPizza.Api.Events;
 using PlantBasedPizza.Deliver.Core.Entities;
 using PlantBasedPizza.Deliver.Core.GetDelivery;
 using PlantBasedPizza.Deliver.Core.Handlers;
 using PlantBasedPizza.Events;
-using PlantBasedPizza.Shared.Events;
 
 namespace PlantBasedPizza.Deliver.Infrastructure
 {
     using MongoDB.Bson.Serialization;
-    using MongoDB.Driver;
 
     public static class Setup
     {
@@ -29,9 +28,11 @@ namespace PlantBasedPizza.Deliver.Infrastructure
                 map.SetIgnoreExtraElements(true);
                 map.SetIgnoreExtraElementsIsInherited(true);
             });
+
+            services.AddHostedService<OrderReadyForDeliveryEventWorker>();
             
             services.AddSingleton<IDeliveryRequestRepository, DeliveryRequestRepository>();
-            services.AddSingleton<Handles<OrderReadyForDeliveryEvent>, OrderReadyForDeliveryEventHandler>();
+            services.AddSingleton<OrderReadyForDeliveryEventHandler>();
             services.AddSingleton<GetDeliveryQueryHandler>();
 
             return services;

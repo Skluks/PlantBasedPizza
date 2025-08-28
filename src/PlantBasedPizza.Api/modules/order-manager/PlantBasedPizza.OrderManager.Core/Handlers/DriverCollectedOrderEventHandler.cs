@@ -1,13 +1,12 @@
-using System.Threading.Tasks;
+using PlantBasedPizza.Api.Events;
 using PlantBasedPizza.Events;
 using PlantBasedPizza.OrderManager.Core.Entities;
-using PlantBasedPizza.Shared.Events;
 using Saunter.Attributes;
 
 namespace PlantBasedPizza.OrderManager.Core.Handlers
 {
     [AsyncApi("OrderManager")]
-    public class DriverCollectedOrderEventHandler : Handles<DriverCollectedOrderEvent>
+    public class DriverCollectedOrderEventHandler : IHandles<DriverCollectedOrderEvent>
     {
         private readonly IOrderRepository _orderRepository;
 

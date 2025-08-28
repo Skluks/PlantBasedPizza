@@ -1,14 +1,13 @@
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using PlantBasedPizza.Api.Events;
 using PlantBasedPizza.Events;
 using PlantBasedPizza.OrderManager.Core.Entities;
-using PlantBasedPizza.Shared.Events;
 using Saunter.Attributes;
 
 namespace PlantBasedPizza.OrderManager.Core.Handlers
 {
     [AsyncApi]
-    public class OrderPrepCompleteEventHandler : Handles<OrderPrepCompleteEvent>
+    public class OrderPrepCompleteEventHandler : IHandles<OrderPrepCompleteEvent>
     {
         private readonly IOrderRepository _orderRepository;
         private readonly ILogger<OrderPrepCompleteEventHandler> _logger;

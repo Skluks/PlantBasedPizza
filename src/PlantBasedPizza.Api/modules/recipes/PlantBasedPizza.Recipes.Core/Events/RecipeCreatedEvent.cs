@@ -1,6 +1,6 @@
-using System;
+using PlantBasedPizza.Api.Events;
+using PlantBasedPizza.Events;
 using PlantBasedPizza.Recipes.Core.Entities;
-using PlantBasedPizza.Shared.Events;
 
 namespace PlantBasedPizza.Recipes.Core.Events
 {
