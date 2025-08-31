@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using Newtonsoft.Json;
 using PlantBasedPizza.E2ETests.ViewModels;
+using PlantBasedPizza.IntegrationTest.Helpers;
 
 namespace PlantBasedPizza.E2ETests.Drivers
 {
@@ -14,6 +15,7 @@ namespace PlantBasedPizza.E2ETests.Drivers
         public KitchenDriver()
         {
             this._httpClient = new HttpClient();
+            this._httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TestTokenGenerator.GenerateTestTokenForRole("staff"));
         }
         
         public async Task<List<KitchenRequest>> GetNew()

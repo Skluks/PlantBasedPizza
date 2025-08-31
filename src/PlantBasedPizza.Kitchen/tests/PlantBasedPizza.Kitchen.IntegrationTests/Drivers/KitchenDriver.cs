@@ -1,9 +1,11 @@
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PlantBasedPizza.Events;
+using PlantBasedPizza.IntegrationTest.Helpers;
 using PlantBasedPizza.Kitchen.IntegrationTests.ViewModels;
 using Serilog.Extensions.Logging;
 
@@ -18,7 +20,9 @@ public class KitchenDriver
 
         public KitchenDriver()
         {
+            var staffToken = TestTokenGenerator.GenerateTestTokenForRole("staff");
             this._httpClient = new HttpClient();
+            this._httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", staffToken); 
 
             _eventPublisher = new RabbitMQEventPublisher(new OptionsWrapper<RabbitMqSettings>(new RabbitMqSettings()
             {
@@ -56,5 +60,52 @@ public class KitchenDriver
             }
 
             return JsonSerializer.Deserialize<List<KitchenRequestDto>>(await result.Content.ReadAsStringAsync());
+        }
+        
+        public async Task<List<KitchenRequestDto>> GetPreparing()
+        {
+            var result = await this._httpClient.GetAsync(new Uri($"{BaseUrl}/kitchen/prep")).ConfigureAwait(false);
+
+            var kitchenRequests = JsonSerializer.Deserialize<List<KitchenRequestDto>>(await result.Content.ReadAsStringAsync());
+
+            return kitchenRequests;
+        }
+        
+        public async Task<List<KitchenRequestDto>> GetBaking()
+        {
+            var result = await this._httpClient.GetAsync(new Uri($"{BaseUrl}/kitchen/baking")).ConfigureAwait(false);
+
+            var kitchenRequests = JsonSerializer.Deserialize<List<KitchenRequestDto>>(await result.Content.ReadAsStringAsync());
+
+            return kitchenRequests;
+        }
+        
+        public async Task<List<KitchenRequestDto>> GetQualityChecked()
+        {
+            var result = await this._httpClient.GetAsync(new Uri($"{BaseUrl}/kitchen/quality-check")).ConfigureAwait(false);
+
+            var kitchenRequests = JsonSerializer.Deserialize<List<KitchenRequestDto>>(await result.Content.ReadAsStringAsync());
+
+            return kitchenRequests;
+        }
+
+        public async Task Preparing(string orderIdentifier)
+        {
+            await this._httpClient.PutAsync(new Uri($"{BaseUrl}/kitchen/{orderIdentifier}/preparing"), new StringContent(string.Empty, Encoding.UTF8)).ConfigureAwait(false);
+        }
+        
+        public async Task PrepComplete(string orderIdentifier)
+        {
+            await this._httpClient.PutAsync(new Uri($"{BaseUrl}/kitchen/{orderIdentifier}/prep-complete"), new StringContent(string.Empty, Encoding.UTF8)).ConfigureAwait(false);
+        }
+        
+        public async Task BakeComplete(string orderIdentifier)
+        {
+            await this._httpClient.PutAsync(new Uri($"{BaseUrl}/kitchen/{orderIdentifier}/bake-complete"), new StringContent(string.Empty, Encoding.UTF8)).ConfigureAwait(false);
+        }
+        
+        public async Task QualityChecked(string orderIdentifier)
+        {
+            await this._httpClient.PutAsync(new Uri($"{BaseUrl}/kitchen/{orderIdentifier}/quality-check"), new StringContent(string.Empty, Encoding.UTF8)).ConfigureAwait(false);
         }
 }
