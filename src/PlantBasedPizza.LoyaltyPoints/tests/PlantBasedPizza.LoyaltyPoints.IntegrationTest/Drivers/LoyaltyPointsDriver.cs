@@ -1,9 +1,11 @@
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PlantBasedPizza.Events;
+using PlantBasedPizza.IntegrationTest.Helpers;
 using PlantBasedPizza.LoyaltyPoints.IntegrationTest.LoyaltyClient;
 using PlantBasedPizza.LoyaltyPoints.IntegrationTest.ViewModels;
 using Serilog.Extensions.Logging;
@@ -21,7 +23,9 @@ public class LoyaltyPointsDriver
         public LoyaltyPointsDriver()
         {
             this._httpClient = new HttpClient();
-
+            this._httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", TestTokenGenerator.GenerateTestTokenForRole("user"));
+            
             var channel = GrpcChannel.ForAddress(TestConstants.InternalTestEndpoint);
             this._loyaltyClient = new Loyalty.LoyaltyClient(channel);
 
@@ -32,24 +36,24 @@ public class LoyaltyPointsDriver
             }), new Logger<RabbitMQEventPublisher>(new SerilogLoggerFactory()), new RabbitMQConnection("localhost"));
         }
 
-        public async Task AddLoyaltyPoints(string customerIdentifier, string orderIdentifier, decimal orderValue)
+        public async Task AddLoyaltyPoints(string orderIdentifier, decimal orderValue)
         {
             await this._eventPublisher.Publish(new OrderCompletedIntegrationEventV1()
             {
-                CustomerIdentifier = customerIdentifier,
+                CustomerIdentifier = "user-account",
                 OrderIdentifier = orderIdentifier,
                 OrderValue = orderValue
             });
-
-            // Delay to allow for message processing
-            await Task.Delay(TimeSpan.FromSeconds(2));
         }
 
-        public async Task<LoyaltyPointsDto?> GetLoyaltyPointsInternal(string customerIdentifier)
+        public async Task<LoyaltyPointsDto?> GetLoyaltyPointsInternal()
         {
+            // Delay to allow for message processing
+            await Task.Delay(TimeSpan.FromSeconds(5));
+            
             var points = await this._loyaltyClient.GetCustomerLoyaltyPointsAsync(new GetCustomerLoyaltyPointsRequest()
             {
-                CustomerIdentifier = customerIdentifier
+                CustomerIdentifier = "user-account"
             });
 
             return new LoyaltyPointsDto()
@@ -59,21 +63,14 @@ public class LoyaltyPointsDriver
             };
         }
 
-        public async Task<LoyaltyPointsDto?> GetLoyaltyPoints(string customerIdentifier)
+        public async Task<LoyaltyPointsDto?> GetLoyaltyPoints()
         {
-            var url = $"{BaseUrl}/loyalty/{customerIdentifier}";
+            await Task.Delay(TimeSpan.FromSeconds(5));
+            
+            var url = $"{BaseUrl}/loyalty";
             
             var getResult = await this._httpClient.GetAsync(new Uri(url)).ConfigureAwait(false);
 
             return JsonSerializer.Deserialize<LoyaltyPointsDto>(await getResult.Content.ReadAsStringAsync());
-        }
-
-        public async Task SpendLoyaltyPoints(string customerIdentifier, string orderIdentifier, int points)
-        {
-            var url = $"{BaseUrl}/loyalty/spend";
-            
-            var content = JsonSerializer.Serialize(new SpendLoyaltyPointsCommand(){CustomerIdentifier = customerIdentifier, OrderIdentifier = orderIdentifier, PointsToSpend = points});
-            
-            await this._httpClient.PostAsync(new Uri(url), new StringContent(content, Encoding.UTF8, "application/json")).ConfigureAwait(false);
         }
     }
